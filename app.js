@@ -12,7 +12,13 @@ var bulk = (function () {
     // constructor body
   }
 
+  /**
+   * fileDir  源文件夹目录名 ##设置了该属性,初始化时设置fileArr将无效
+   * fileArr  要修改的文件数组
+   * dist  ouput file fileDir
+   */
   bulk.prototype = {
+    fileDir: null,
     fileArr: [],
     dist: 'dist',
   };
@@ -60,7 +66,7 @@ var bulk = (function () {
       });
 
     };
-  }
+  };
 
   bulk.prototype.updateHtml = function (str) {
 
@@ -123,7 +129,7 @@ var bulk = (function () {
 
     var mid = '/';
 
-    if(_this.fileDir.charAt(_this.fileDir.length-1) === '/'){
+    if (_this.fileDir.charAt(_this.fileDir.length - 1) === '/') {
       mid = '';
     }
 
