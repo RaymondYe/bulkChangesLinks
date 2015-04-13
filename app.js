@@ -1,7 +1,7 @@
 var fs = require('fs');
 var cheerio = require('cheerio');
 
-var bulk = (function () {
+var bulk = (function() {
   'use strict';
 
   function bulk(args) {
@@ -13,7 +13,7 @@ var bulk = (function () {
   }
 
   /**
-   * fileDir  源文件夹目录名 ##设置了该属性,初始化时设置fileArr将无效
+   * fileDir  要修改的文件目录
    * fileArr  要修改的文件数组
    * dist  ouput file fileDir
    */
@@ -23,7 +23,7 @@ var bulk = (function () {
     dist: 'dist',
   };
 
-  bulk.prototype.init = function (args) {
+  bulk.prototype.init = function(args) {
 
     for (var prop in args) {
       if (args.hasOwnProperty(prop)) {
@@ -35,6 +35,7 @@ var bulk = (function () {
 
     if (_this.fileDir) {
       _this.getFileDir();
+      return;
     } else {
       return;
     }
@@ -48,27 +49,42 @@ var bulk = (function () {
 
   };
 
-  bulk.prototype.onError = function () {
+  bulk.prototype.onError = function() {
     console.warn('Place Set your file Arr Before Start!');
   };
 
-  bulk.prototype.run = function () {
+  bulk.prototype.run = function() {
 
     var _this = this;
 
-    for (var i = 0; i < _this.fileArr.length; i++) {
+    if (!_this.fileArr.length) {
+      return;
+    }
 
-      _this.readFile(_this.fileArr[i], function (data, f) {
+    fs.rmdir(_this.dist, function(err) {
+      if (err) throw err;
 
-        var h = _this.updateHtml(data.toString());
-        _this.createNewFile(f, h.toString());
+      fs.mkdir(_this.dist, function(err) {
+        if (err) throw err;
+
+        for (var i = 0; i < _this.fileArr.length; i++) {
+
+          _this.readFile(_this.fileArr[i], function(data, f) {
+
+            var h = _this.updateHtml(data.toString());
+            _this.createNewFile(f, h.toString());
+
+          });
+
+        };
 
       });
 
-    };
+    });
+
   };
 
-  bulk.prototype.updateHtml = function (str) {
+  bulk.prototype.updateHtml = function(str) {
 
     console.log('Start Update Str');
 
@@ -84,9 +100,9 @@ var bulk = (function () {
     return html;
   };
 
-  bulk.prototype.readFile = function (file, callback) {
+  bulk.prototype.readFile = function(file, callback) {
 
-    fs.readFile(file, function (err, data) {
+    fs.readFile(file, function(err, data) {
 
       if (err) throw err;
 
@@ -98,7 +114,7 @@ var bulk = (function () {
 
   };
 
-  bulk.prototype.createNewFile = function (file, html) {
+  bulk.prototype.createNewFile = function(file, html) {
 
     var _this = this;
 
@@ -114,7 +130,7 @@ var bulk = (function () {
 
     var src = _this.dist + '/' + fileName;
 
-    fs.writeFile(src, html, function (err) {
+    fs.writeFile(src, html, function(err) {
       if (err) throw err;
 
       console.log(src + ', It\'s Success!');
@@ -123,7 +139,7 @@ var bulk = (function () {
 
   };
 
-  bulk.prototype.getFileDir = function () {
+  bulk.prototype.getFileDir = function() {
 
     var _this = this;
 
@@ -133,15 +149,25 @@ var bulk = (function () {
       mid = '';
     }
 
-    fs.readdir(_this.fileDir, function (err, files) {
+    fs.readdir(_this.fileDir, function(err, files) {
 
       if (err) throw err;
 
       for (var i = 0; i < files.length; i++) {
+
         files[i] = _this.fileDir + mid + files[i];
+
       };
 
-      _this.fileArr = files;
+      if (_this.fileArr.length) {
+
+        _this.fileArr = _this.fileArr.concat(files);
+
+      } else {
+
+        _this.fileArr = files;
+
+      }
 
       _this.run();
     });
@@ -150,8 +176,11 @@ var bulk = (function () {
   return bulk;
 }());
 
+
+
 var b = new bulk();
 
 b.init({
-  fileDir: './html'
+  fileDir: './html',
+  fileArr: ['x/a.txt']
 });
