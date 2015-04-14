@@ -1,7 +1,8 @@
 var fs = require('fs');
 var cheerio = require('cheerio');
+var _ = require('lodash');
 
-var bulk = (function() {
+var bulk = (function () {
   'use strict';
 
   function bulk(args) {
@@ -23,7 +24,7 @@ var bulk = (function() {
     dist: 'dist',
   };
 
-  bulk.prototype.init = function(args) {
+  bulk.prototype.init = function (args) {
 
     for (var prop in args) {
       if (args.hasOwnProperty(prop)) {
@@ -49,11 +50,11 @@ var bulk = (function() {
 
   };
 
-  bulk.prototype.onError = function() {
+  bulk.prototype.onError = function () {
     console.warn('Place Set your file Arr Before Start!');
   };
 
-  bulk.prototype.run = function() {
+  bulk.prototype.run = function () {
 
     var _this = this;
 
@@ -61,36 +62,51 @@ var bulk = (function() {
       return;
     }
 
-    fs.rmdir(_this.dist, function(err) {
+    fs.readdir('', function (err, files) {
+      if (err) throw err;
 
-      fs.mkdir(_this.dist, function(err) {
-        if (err) throw err;
+      if (_.indexOf(files, _this.dist) >= 0) {
 
-        for (var i = 0; i < _this.fileArr.length; i++) {
+        _this.toDoFileArr();
 
-          _this.readFile(_this.fileArr[i], function(data, f) {
+      } else {
 
-            var h = _this.updateHtml(data.toString());
-            _this.createNewFile(f, h.toString());
+        fs.mkdir(_this.dist, function (err) {
+          if (err) throw err;
+          _this.toDoFileArr();
+        });
 
-          });
-
-        };
-
-      });
+      }
 
     });
 
   };
 
-  bulk.prototype.updateHtml = function(str) {
+  bulk.prototype.toDoFileArr = function () {
+    var _this = this;
+    for (var i = 0; i < _this.fileArr.length; i++) {
+
+      _this.readFile(_this.fileArr[i], function (data, f) {
+
+        var h = _this.updateHtml(data.toString());
+        _this.createNewFile(f, h);
+
+      });
+
+    };
+
+  };
+
+  bulk.prototype.updateHtml = function (str) {
 
     console.log('Start Update Str');
 
     var html = '';
     var $ = null;
 
-    $ = cheerio.load(str);
+    $ = cheerio.load(str, {
+      decodeEntities: false
+    });
 
     $('a').attr('href', '');
 
@@ -99,9 +115,9 @@ var bulk = (function() {
     return html;
   };
 
-  bulk.prototype.readFile = function(file, callback) {
+  bulk.prototype.readFile = function (file, callback) {
 
-    fs.readFile(file, function(err, data) {
+    fs.readFile(file, function (err, data) {
 
       if (err) throw err;
 
@@ -113,7 +129,7 @@ var bulk = (function() {
 
   };
 
-  bulk.prototype.createNewFile = function(file, html) {
+  bulk.prototype.createNewFile = function (file, html) {
 
     var _this = this;
 
@@ -129,7 +145,7 @@ var bulk = (function() {
 
     var src = _this.dist + '/' + fileName;
 
-    fs.writeFile(src, html, function(err) {
+    fs.writeFile(src, html, function (err) {
       if (err) throw err;
 
       console.log(src + ', It\'s Success!');
@@ -138,7 +154,7 @@ var bulk = (function() {
 
   };
 
-  bulk.prototype.getFileDir = function() {
+  bulk.prototype.getFileDir = function () {
 
     var _this = this;
 
@@ -148,7 +164,7 @@ var bulk = (function() {
       mid = '';
     }
 
-    fs.readdir(_this.fileDir, function(err, files) {
+    fs.readdir(_this.fileDir, function (err, files) {
 
       if (err) throw err;
 
@@ -174,8 +190,6 @@ var bulk = (function() {
 
   return bulk;
 }());
-
-
 
 var b = new bulk();
 
