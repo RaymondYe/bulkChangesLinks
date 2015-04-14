@@ -62,7 +62,6 @@ var bulk = (function() {
     }
 
     fs.rmdir(_this.dist, function(err) {
-      if (err) throw err;
 
       fs.mkdir(_this.dist, function(err) {
         if (err) throw err;
@@ -182,5 +181,4 @@ var b = new bulk();
 
 b.init({
   fileDir: './html',
-  fileArr: ['x/a.txt']
 });
